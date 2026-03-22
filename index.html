@@ -89,7 +89,7 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 const ADMIN_PASS="rotary@2024";
-const Q_TIME=15;
+const Q_TIME=10;
 const KEYS={state:"rq_state",questions:"rq_questions",parts:"rq_parts",ans:n=>"rq_ans_"+btoa(unescape(encodeURIComponent(n))).replace(/[=+/]/g,"X")};
 const INIT_STATE={status:"waiting",currentQ:-1,qStartAt:0,total:25};
 
@@ -253,7 +253,7 @@ function renderQuiz(){
         ${S.selected===q.c?"✓ Correct! Well done.":"✗ Wrong. Correct: "+["A","B","C","D"][q.c]+". "+esc(q.opts[q.c])}
       </div>`}
     </div>
-    <div style="text-align:center;font-size:11px;color:#bbb;padding:4px 0">Next question in 15 seconds</div>
+    <div style="text-align:center;font-size:11px;color:#bbb;padding:4px 0">Next question in 10 seconds</div>
   </div>`;
 }
 
@@ -422,20 +422,26 @@ function startTimer(){
   if(S.timerId) clearInterval(S.timerId);
   S.timerId=setInterval(()=>{
     if(S.qState.status!=="running") return;
-    const left=Math.max(0,Q_TIME-(Date.now()-S.qState.qStartAt)/1000);
+    const localStart=S.qState._localStart||S.qState.qStartAt;
+    const elapsed=(Date.now()-localStart)/1000;
+    const left=Math.max(0,Q_TIME-elapsed);
     S.timeLeft=Math.ceil(left);
-    if(left<=0&&!S.locked&&!S.isAdmin) submitAns(S.selected);
+    if(left<=0&&!S.locked&&!S.isAdmin){
+      submitAns(S.selected);
+    }
     const tn=document.getElementById("timerNum");
     if(tn) tn.textContent=S.timeLeft;
     const circle=document.getElementById("timerCircle");
     if(circle){
-      const R=27,circ=2*Math.PI*R,dash=circ*(S.timeLeft/Q_TIME);
-      const tc=S.timeLeft<=2?"#c0392b":S.timeLeft<=3?"#d4810a":"var(--navy)";
+      const R=27,circ=2*Math.PI*R;
+      const pct=Math.max(0,left/Q_TIME);
+      const dash=circ*pct;
+      const tc=S.timeLeft<=3?"#c0392b":S.timeLeft<=5?"#d4810a":"var(--navy)";
       circle.setAttribute("stroke-dasharray",`${dash} ${circ}`);
       circle.setAttribute("stroke",tc);
       if(tn) tn.style.color=tc;
     }
-  },100);
+  },200);
 }
 
 let advId=null;
@@ -445,24 +451,26 @@ function startAdvancer(){
   advBusy=false;
   advId=setInterval(async()=>{
     if(!S.isAdmin||S.qState.status!=="running"||advBusy) return;
-    const localElapsed=(Date.now()-S.qState.qStartAt)/1000;
-    if(localElapsed<Q_TIME+0.5) return;
+    const localStart=S.qState._localStart||S.qState.qStartAt;
+    const localElapsed=(Date.now()-localStart)/1000;
+    if(localElapsed<Q_TIME) return;
     advBusy=true;
     try{
       const state=await sGet(KEYS.state);
-      if(!state||state.status!=="running") return;
-      const elapsed=(Date.now()-state.qStartAt)/1000;
-      if(elapsed>=Q_TIME){
+      if(!state||state.status!=="running"){advBusy=false;return;}
+      const remoteElapsed=(Date.now()-(state._localStart||state.qStartAt))/1000;
+      if(remoteElapsed>=Q_TIME){
         const next=state.currentQ+1;
+        const newStart=Date.now();
         if(next>=state.total){
-          await sSet(KEYS.state,{...state,status:"finished"});
+          await sSet(KEYS.state,{status:"finished",currentQ:state.currentQ,qStartAt:state.qStartAt,total:state.total});
         } else {
-          await sSet(KEYS.state,{...state,currentQ:next,qStartAt:Date.now()});
+          await sSet(KEYS.state,{status:"running",currentQ:next,qStartAt:newStart,total:state.total,_localStart:newStart});
         }
       }
     }catch(e){console.error(e);}
     finally{advBusy=false;}
-  },500);
+  },300);
 }
 
 async function fetchAllAnswers(){
@@ -484,10 +492,13 @@ function listenState(){
     const state=snap.val();
     if(!state) return;
     const prev=S.qState.currentQ;
-    if(state.currentQ!==prev){
+    if(state.currentQ!==prev || (prev===-1 && state.currentQ===0)){
       S.selected=null;
       S.locked=false;
-      state.qStartAt=Date.now();
+      S.timeLeft=Q_TIME;
+      state._localStart=Date.now();
+    } else if(!state._localStart){
+      state._localStart=state._localStart||Date.now();
     }
     S.qState=state;
     const qs=await sGet(KEYS.questions);
@@ -565,7 +576,8 @@ function attachEvents(){
 
   const sb=g("startBtn");
   if(sb) sb.onclick=async()=>{
-    await sSet(KEYS.state,{status:"running",currentQ:0,qStartAt:Date.now(),total:S.questions.length});
+    const t=Date.now();
+    await sSet(KEYS.state,{status:"running",currentQ:0,qStartAt:t,_localStart:t,total:S.questions.length});
     render();
   };
 
