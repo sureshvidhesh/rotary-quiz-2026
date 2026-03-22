@@ -290,60 +290,73 @@ function renderResult(){
   const myA=S.myAnswers,qs=S.questions;
   let sc=0,wr=0,sk=0;
   qs.forEach((q,i)=>{const a=myA[i];if(a===undefined||a===null)sk++;else if(Number(a)===q.c)sc++;else wr++;});
-  const lb=getLB(),rank=lb.findIndex(r=>r.name===S.userName)+1;
+  const lb=getLB();
+  const rank=lb.findIndex(r=>r.name===S.userName)+1;
   const pct=qs.length?Math.round(sc/qs.length*100):0;
-  const top5=lb.slice(0,3);
-  const medals=["🥇","🥈","🥉"];
-  const top5html=top5.length?top5.map((r,i)=>{
+  const top3=lb.slice(0,3);
+  const medalEmoji=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":"📝";
+  const medalColors=["linear-gradient(135deg,#FFD700,#FFF176)","linear-gradient(135deg,#E0E0E0,#F5F5F5)","linear-gradient(135deg,#CD7F32,#FFCC80)"];
+  const medalIcons=["🥇","🥈","🥉"];
+
+  const top3html=top3.length>=1?top3.map((r,i)=>{
     const isMe=r.name===S.userName;
-    const rowBg=i===0?"linear-gradient(135deg,#ffd700,#ffec6e)":i===1?"linear-gradient(135deg,#e8e8e8,#f5f5f5)":i===2?"linear-gradient(135deg,#cd7f32,#e8a96a)":"#f5f6fa";
-    const textC=i<3?"#1a2e6e":"#333";
-    return`<div style="border-radius:16px;margin-bottom:12px;background:${rowBg};border:${isMe?"2.5px solid var(--navy)":"2px solid rgba(26,46,110,.1)"}overflow:hidden">
+    const pc=qs.length?Math.round(r.score/qs.length*100):0;
+    return`<div style="border-radius:14px;margin-bottom:10px;background:${medalColors[i]};border:${isMe?"3px solid var(--navy)":"2px solid rgba(0,0,0,.08)"}">
       <div style="display:flex;align-items:center;gap:10px;padding:12px 14px 8px">
-        <div style="font-size:32px;flex-shrink:0">${medals[i]}</div>
+        <div style="font-size:36px;flex-shrink:0">${medalIcons[i]}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Rank ${i+1}</div>
-          <div style="font-size:17px;font-weight:700;color:${textC};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${esc(r.name)}${isMe?" 👤":""}</div>
-          <div style="font-size:13px;color:#555;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏛 ${esc(r.club||"")}</div>
+          <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:.8px;text-transform:uppercase">Rank ${i+1}</div>
+          <div style="font-size:17px;font-weight:700;color:#1a2e6e;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}${isMe?" 👤":""}</div>
+          <div style="font-size:13px;color:#444;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏛 ${esc(r.club||"")}</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 12px;border-top:1px solid rgba(26,46,110,.1)">
-        <div style="display:flex;gap:16px">
-          <div style="text-align:center">
-            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px">Score</div>
-            <div style="font-size:20px;font-weight:700;color:#1a5c2e">${r.score}<span style="font-size:12px;color:#aaa">/${qs.length}</span></div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px">Wrong</div>
-            <div style="font-size:20px;font-weight:700;color:#c0392b">${r.wrong}</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px">Percent</div>
-            <div style="font-size:20px;font-weight:700;color:var(--navy)">${qs.length?Math.round(r.score/qs.length*100):0}%</div>
-          </div>
+      <div style="display:flex;gap:0;border-top:1px solid rgba(0,0,0,.1)">
+        <div style="flex:1;text-align:center;padding:10px 6px;border-right:1px solid rgba(0,0,0,.08)">
+          <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Score</div>
+          <div style="font-size:20px;font-weight:700;color:#1a5c2e;margin-top:2px">${r.score}<span style="font-size:11px;color:#888">/${qs.length}</span></div>
+        </div>
+        <div style="flex:1;text-align:center;padding:10px 6px;border-right:1px solid rgba(0,0,0,.08)">
+          <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Wrong</div>
+          <div style="font-size:20px;font-weight:700;color:#c0392b;margin-top:2px">${r.wrong}</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:10px 6px">
+          <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Score%</div>
+          <div style="font-size:20px;font-weight:700;color:var(--navy);margin-top:2px">${pc}%</div>
         </div>
       </div>
     </div>`;
-  }).join(""):`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:14px">No results yet</div>`;
+  }).join(""):`<div style="text-align:center;padding:2rem;color:#bbb;font-size:14px">Loading results...</div>`;
+
   return`<div class="body fade-in">
-    <div class="card-navy" style="text-align:center;padding:20px 18px;margin-bottom:12px">
-      <div style="font-size:48px">${rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":"📝"}</div>
-      <div style="font-size:18px;font-weight:700;color:#fff;margin:8px 0 3px">🏛 ${esc(S.userClub)}</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.65)">${esc(S.userName)}</div>
-      ${rank<=3&&rank>0?`<div style="display:inline-block;background:var(--gold);color:var(--navy);padding:6px 20px;border-radius:20px;font-size:14px;font-weight:700;margin-top:10px">🏆 Rank #${rank} Winner!</div>`:`<div style="display:inline-block;background:rgba(255,255,255,.15);color:#fff;padding:6px 20px;border-radius:20px;font-size:13px;margin-top:10px">Thank you for participating!</div>`}
+    <div class="card-navy" style="text-align:center;padding:18px 16px;margin-bottom:12px">
+      <div style="font-size:52px">${medalEmoji}</div>
+      <div style="font-size:17px;font-weight:700;color:#fff;margin:8px 0 3px">🏛 ${esc(S.userClub)}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7)">${esc(S.userName)}</div>
+      ${rank>0&&rank<=3?
+        `<div style="display:inline-block;background:var(--gold);color:var(--navy);padding:7px 22px;border-radius:20px;font-size:14px;font-weight:700;margin-top:10px">🏆 You are Rank #${rank}!</div>`:
+        `<div style="display:inline-block;background:rgba(255,255,255,.15);color:#fff;padding:7px 22px;border-radius:20px;font-size:13px;font-weight:500;margin-top:10px">Thank you for participating!</div>`}
     </div>
-    <div class="stats-grid">
-      <div class="stat-box"><div class="stat-val" style="color:#1a5c2e">${sc}</div><div class="stat-lbl">Correct</div></div>
-      <div class="stat-box"><div class="stat-val" style="color:#c0392b">${wr}</div><div class="stat-lbl">Wrong</div></div>
-      <div class="stat-box"><div class="stat-val" style="color:var(--navy)">${pct}%</div><div class="stat-lbl">Score</div></div>
-    </div>
-    <div class="card" style="padding:16px">
-      <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:22px;font-weight:700;color:var(--navy)">🏆 Top 3 Winners</div>
-        <div style="font-size:12px;color:#888;margin-top:3px">Rotary Foundation Online Quiz 2026</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+      <div style="background:var(--navy-light);border-radius:12px;padding:12px 6px;text-align:center">
+        <div style="font-size:24px;font-weight:700;color:#1a5c2e">${sc}</div>
+        <div style="font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Correct</div>
       </div>
-      <div style="height:2px;background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy));border-radius:2px;margin-bottom:14px"></div>
-      ${top5html}
+      <div style="background:var(--navy-light);border-radius:12px;padding:12px 6px;text-align:center">
+        <div style="font-size:24px;font-weight:700;color:#c0392b">${wr}</div>
+        <div style="font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Wrong</div>
+      </div>
+      <div style="background:var(--navy-light);border-radius:12px;padding:12px 6px;text-align:center">
+        <div style="font-size:24px;font-weight:700;color:var(--navy)">${pct}%</div>
+        <div style="font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Score</div>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(26,46,110,.08)">
+      <div style="text-align:center;margin-bottom:12px">
+        <div style="font-size:20px;font-weight:700;color:var(--navy)">🏆 Top 3 Winners</div>
+        <div style="font-size:11px;color:#999;margin-top:3px">Rotary Foundation Online Quiz 2026</div>
+        <div style="height:2px;background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy));border-radius:2px;margin-top:10px"></div>
+      </div>
+      ${top3html}
     </div>
     <button class="btn btn-outline" id="backHomeBtn" style="margin-bottom:14px">← Home-க்கு திரும்பு</button>
   </div>`;
@@ -441,13 +454,16 @@ function startAdvancer(){
 }
 
 async function fetchAllAnswers(){
-  const pts=await sGet(KEYS.parts);
-  if(pts) S.participants=pts;
-  const names=Object.keys(S.participants||{});
-  for(const n of names){
-    const a=await sGet(KEYS.ans(n));
-    if(a) S.allAnswers[n]=a;
-  }
+  try{
+    const pts=await sGet(KEYS.parts);
+    if(pts) S.participants=pts;
+    const names=Object.keys(S.participants||{});
+    const fetches=names.map(async n=>{
+      const a=await sGet(KEYS.ans(n));
+      if(a) S.allAnswers[n]=a;
+    });
+    await Promise.all(fetches);
+  }catch(e){console.error('fetchAllAnswers error:',e);}
 }
 
 function listenState(){
