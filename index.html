@@ -89,7 +89,7 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 const ADMIN_PASS="rotary@2024";
-const Q_TIME=5;
+const Q_TIME=15;
 const KEYS={state:"rq_state",questions:"rq_questions",parts:"rq_parts",ans:n=>"rq_ans_"+btoa(unescape(encodeURIComponent(n))).replace(/[=+/]/g,"X")};
 const INIT_STATE={status:"waiting",currentQ:-1,qStartAt:0,total:25};
 
@@ -154,7 +154,7 @@ function buildHdr(sub){
 function render(){
   const root=document.getElementById("root");
   let sub="";
-  if(S.view==="quiz") sub=`Q${S.qState.currentQ+1}/${S.qState.total} · 5s timer`;
+  if(S.view==="quiz") sub=`Q${S.qState.currentQ+1}/${S.qState.total} · 15s timer`;
   else if(S.view==="waiting") sub="Waiting for quiz to start...";
   else if(S.view==="result") sub="Quiz Results";
   let h=buildHdr(sub);
@@ -253,7 +253,7 @@ function renderQuiz(){
         ${S.selected===q.c?"✓ Correct! Well done.":"✗ Wrong. Correct: "+["A","B","C","D"][q.c]+". "+esc(q.opts[q.c])}
       </div>`}
     </div>
-    <div style="text-align:center;font-size:11px;color:#bbb;padding:4px 0">Next question in 5 seconds</div>
+    <div style="text-align:center;font-size:11px;color:#bbb;padding:4px 0">Next question in 15 seconds</div>
   </div>`;
 }
 
@@ -404,7 +404,7 @@ function renderAdmin(){
       </div>
     </div>
     ${isWait&&qc<25?`<div style="padding:11px 13px;background:#fff8d0;border-radius:11px;font-size:13px;color:#7a5a00;margin-bottom:12px;border:1px solid rgba(201,162,39,.3)">⚠ ${25-qc} more questions needed</div>`:""}
-    ${isRun&&cQ?`<div class="card" style="padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px">Q ${qs.currentQ+1}/${qs.total}</span><span style="font-size:11px;color:#bbb">5s auto</span></div>${cQ.img?`<img src="${cQ.img}" style="max-height:70px;object-fit:contain;margin-bottom:8px;border-radius:8px;display:block"/>`:""}  <div style="font-size:14px;font-weight:700;color:var(--navy);line-height:1.4">${esc(cQ.q)}</div>${liveHtml}</div>`:""}
+    ${isRun&&cQ?`<div class="card" style="padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px">Q ${qs.currentQ+1}/${qs.total}</span><span style="font-size:11px;color:#bbb">15s auto</span></div>${cQ.img?`<img src="${cQ.img}" style="max-height:70px;object-fit:contain;margin-bottom:8px;border-radius:8px;display:block"/>`:""}  <div style="font-size:14px;font-weight:700;color:var(--navy);line-height:1.4">${esc(cQ.q)}</div>${liveHtml}</div>`:""}
     <div class="tabs">
       <button class="tab-btn ${S.adminTab==="qs"?"active":""}" data-tab="qs">Questions ${qc}/25</button>
       <button class="tab-btn ${S.adminTab==="members"?"active":""}" data-tab="members">Members(${pKeys.length})</button>
