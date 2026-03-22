@@ -327,10 +327,10 @@ function renderResult(){
   }).join(""):`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:14px">No results yet</div>`;
   return`<div class="body fade-in">
     <div class="card-navy" style="text-align:center;padding:20px 18px;margin-bottom:12px">
-      <div style="font-size:42px">${sc>=20?"🏆":sc>=15?"🥈":sc>=10?"🥉":"📝"}</div>
+      <div style="font-size:48px">${rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":"📝"}</div>
       <div style="font-size:18px;font-weight:700;color:#fff;margin:8px 0 3px">🏛 ${esc(S.userClub)}</div>
       <div style="font-size:13px;color:rgba(255,255,255,.65)">${esc(S.userName)}</div>
-      ${rank?`<div style="display:inline-block;background:var(--gold);color:var(--navy);padding:5px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-top:8px">Your Rank: #${rank} of ${lb.length}</div>`:""}
+      ${rank<=3&&rank>0?`<div style="display:inline-block;background:var(--gold);color:var(--navy);padding:6px 20px;border-radius:20px;font-size:14px;font-weight:700;margin-top:10px">🏆 Rank #${rank} Winner!</div>`:`<div style="display:inline-block;background:rgba(255,255,255,.15);color:#fff;padding:6px 20px;border-radius:20px;font-size:13px;margin-top:10px">Thank you for participating!</div>`}
     </div>
     <div class="stats-grid">
       <div class="stat-box"><div class="stat-val" style="color:#1a5c2e">${sc}</div><div class="stat-lbl">Correct</div></div>
