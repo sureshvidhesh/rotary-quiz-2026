@@ -440,6 +440,16 @@ function startAdvancer(){
   },400);
 }
 
+async function fetchAllAnswers(){
+  const pts=await sGet(KEYS.parts);
+  if(pts) S.participants=pts;
+  const names=Object.keys(S.participants||{});
+  for(const n of names){
+    const a=await sGet(KEYS.ans(n));
+    if(a) S.allAnswers[n]=a;
+  }
+}
+
 function listenState(){
   if(S.stateListener) db.ref(KEYS.state).off("value",S.stateListener);
   S.stateListener=db.ref(KEYS.state).on("value",async snap=>{
@@ -458,6 +468,9 @@ function listenState(){
     } else {
       const myA=await sGet(KEYS.ans(S.userName));
       if(myA) S.myAnswers=myA;
+      if(state.status==="finished"){
+        await fetchAllAnswers();
+      }
     }
     updateView();
   });
@@ -533,7 +546,7 @@ function attachEvents(){
   };
 
   const cb=g("confirmBtn");if(cb) cb.onclick=()=>{if(S.selected!==null&&!S.locked) submitAns(S.selected);};
-  const bb=g("backHomeBtn");if(bb) bb.onclick=()=>{S.view="home";S.userName="";S.userClub="";S.userPhone="";S.myAnswers={};S.selected=null;S.locked=false;if(S.stateListener){db.ref(KEYS.state).off("value",S.stateListener);S.stateListener=null;}render();};
+  const bb=g("backHomeBtn");if(bb) bb.onclick=()=>{S.view="home";S.userName="";S.userClub="";S.userPhone="";S.myAnswers={};S.allAnswers={};S.selected=null;S.locked=false;if(S.stateListener){db.ref(KEYS.state).off("value",S.stateListener);S.stateListener=null;}render();};
 
   document.querySelectorAll(".opt").forEach(o=>{o.onclick=()=>{if(!S.locked){S.selected=parseInt(o.dataset.opt);render();}};});
   document.querySelectorAll(".tab-btn").forEach(t=>{t.onclick=()=>{S.adminTab=t.dataset.tab;render();};});
