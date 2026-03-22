@@ -422,29 +422,29 @@ function startTimer(){
   if(S.timerId) clearInterval(S.timerId);
   S.timerId=setInterval(()=>{
     if(S.qState.status!=="running") return;
-    const localStart=S.qState._localStart||S.qState.qStartAt;
-    const elapsed=(Date.now()-localStart)/1000;
-    const left=Math.max(0,Q_TIME-elapsed);
-    S.timeLeft=Math.ceil(left);
-    if(left<=0&&!S.locked&&!S.isAdmin){
+    if(S.timeLeft>0){
+      S.timeLeft-=1;
+    }
+    if(S.timeLeft<=0&&!S.locked&&!S.isAdmin){
       submitAns(S.selected);
     }
     const tn=document.getElementById("timerNum");
     if(tn) tn.textContent=S.timeLeft;
     const hdrSub=document.querySelector(".hdr-sub");
-    if(hdrSub&&S.view==="quiz") hdrSub.textContent=`Q${S.qState.currentQ+1}/${S.qState.total} · ⏱ ${S.timeLeft}s`;
+    if(hdrSub&&S.view==="quiz") hdrSub.textContent="Q"+(S.qState.currentQ+1)+"/"+S.qState.total+" · ⏱ "+S.timeLeft+"s";
     const circle=document.getElementById("timerCircle");
     if(circle){
       const R=27,circ=2*Math.PI*R;
-      const pct=Math.max(0,left/Q_TIME);
+      const pct=Math.max(0,S.timeLeft/Q_TIME);
       const dash=circ*pct;
       const tc=S.timeLeft<=3?"#c0392b":S.timeLeft<=5?"#d4810a":"var(--navy)";
-      circle.setAttribute("stroke-dasharray",`${dash} ${circ}`);
+      circle.setAttribute("stroke-dasharray",dash+" "+circ);
       circle.setAttribute("stroke",tc);
       if(tn) tn.style.color=tc;
     }
-  },200);
+  },1000);
 }
+
 
 let advId=null;
 let advBusy=false;
@@ -453,27 +453,23 @@ function startAdvancer(){
   advBusy=false;
   advId=setInterval(async()=>{
     if(!S.isAdmin||S.qState.status!=="running"||advBusy) return;
-    const localStart=S.qState._localStart||S.qState.qStartAt;
-    const localElapsed=(Date.now()-localStart)/1000;
-    if(localElapsed<Q_TIME) return;
+    if(S.timeLeft>0) return;
     advBusy=true;
     try{
       const state=await sGet(KEYS.state);
       if(!state||state.status!=="running"){advBusy=false;return;}
-      const remoteElapsed=(Date.now()-(state._localStart||state.qStartAt))/1000;
-      if(remoteElapsed>=Q_TIME){
-        const next=state.currentQ+1;
-        const newStart=Date.now();
-        if(next>=state.total){
-          await sSet(KEYS.state,{status:"finished",currentQ:state.currentQ,qStartAt:state.qStartAt,total:state.total});
-        } else {
-          await sSet(KEYS.state,{status:"running",currentQ:next,qStartAt:newStart,total:state.total,_localStart:newStart});
-        }
+      const next=state.currentQ+1;
+      if(next>=state.total){
+        await sSet(KEYS.state,{status:"finished",currentQ:state.currentQ,qStartAt:state.qStartAt,total:state.total});
+      } else {
+        const t=Date.now();
+        await sSet(KEYS.state,{status:"running",currentQ:next,qStartAt:t,total:state.total});
       }
     }catch(e){console.error(e);}
     finally{advBusy=false;}
-  },300);
+  },500);
 }
+
 
 async function fetchAllAnswers(){
   try{
@@ -494,13 +490,10 @@ function listenState(){
     const state=snap.val();
     if(!state) return;
     const prev=S.qState.currentQ;
-    if(state.currentQ!==prev || (prev===-1 && state.currentQ===0)){
+    if(state.currentQ!==prev || (state.status==="running" && prev===-1)){
       S.selected=null;
       S.locked=false;
       S.timeLeft=Q_TIME;
-      state._localStart=Date.now();
-    } else if(!state._localStart){
-      state._localStart=state._localStart||Date.now();
     }
     S.qState=state;
     const qs=await sGet(KEYS.questions);
@@ -579,7 +572,7 @@ function attachEvents(){
   const sb=g("startBtn");
   if(sb) sb.onclick=async()=>{
     const t=Date.now();
-    await sSet(KEYS.state,{status:"running",currentQ:0,qStartAt:t,_localStart:t,total:S.questions.length});
+    await sSet(KEYS.state,{status:"running",currentQ:0,qStartAt:t,total:S.questions.length});
     render();
   };
 
