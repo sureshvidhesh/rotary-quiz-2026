@@ -439,18 +439,30 @@ function startTimer(){
 }
 
 let advId=null;
+let advBusy=false;
 function startAdvancer(){
   if(advId) clearInterval(advId);
+  advBusy=false;
   advId=setInterval(async()=>{
-    if(!S.isAdmin||S.qState.status!=="running") return;
-    const state=await sGet(KEYS.state);
-    if(!state||state.status!=="running") return;
-    if((Date.now()-state.qStartAt)/1000>=Q_TIME+0.8){
-      const next=state.currentQ+1;
-      if(next>=state.total) await sSet(KEYS.state,{...state,status:"finished"});
-      else await sSet(KEYS.state,{...state,currentQ:next,qStartAt:Date.now()});
-    }
-  },400);
+    if(!S.isAdmin||S.qState.status!=="running"||advBusy) return;
+    const localElapsed=(Date.now()-S.qState.qStartAt)/1000;
+    if(localElapsed<Q_TIME+0.5) return;
+    advBusy=true;
+    try{
+      const state=await sGet(KEYS.state);
+      if(!state||state.status!=="running") return;
+      const elapsed=(Date.now()-state.qStartAt)/1000;
+      if(elapsed>=Q_TIME){
+        const next=state.currentQ+1;
+        if(next>=state.total){
+          await sSet(KEYS.state,{...state,status:"finished"});
+        } else {
+          await sSet(KEYS.state,{...state,currentQ:next,qStartAt:Date.now()});
+        }
+      }
+    }catch(e){console.error(e);}
+    finally{advBusy=false;}
+  },500);
 }
 
 async function fetchAllAnswers(){
@@ -472,7 +484,11 @@ function listenState(){
     const state=snap.val();
     if(!state) return;
     const prev=S.qState.currentQ;
-    if(state.currentQ!==prev){S.selected=null;S.locked=false;}
+    if(state.currentQ!==prev){
+      S.selected=null;
+      S.locked=false;
+      state.qStartAt=Date.now();
+    }
     S.qState=state;
     const qs=await sGet(KEYS.questions);
     if(qs) S.questions=Array.isArray(qs)?qs:Object.values(qs);
