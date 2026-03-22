@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Rotary Quiz 2026 - RC Pondicherry Eyes</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--navy:#1a2e6e;--gold:#c9a227;--light-gold:#f5d87e;--navy-light:#e8ecf7}
+html,body{min-height:100vh;background:#f0f2f8;font-family:'Segoe UI',sans-serif}
+.hdr{background:var(--navy);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:100}
+.hdr-logos{display:flex;align-items:center;gap:12px}
+.club-logo-circle{width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.club-logo-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.rotary-logo-wrap{height:34px;display:flex;align-items:center;justify-content:center}
+.rotary-logo-wrap img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
+.hdr-center{flex:1;text-align:center;padding:0 8px}
+.hdr-title{font-size:11px;color:var(--light-gold);letter-spacing:1px;text-transform:uppercase}
+.hdr-club{font-size:13px;color:#fff;font-weight:700;margin-top:2px;line-height:1.3}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.55);margin-top:1px}
+.body{padding:14px;max-width:600px;margin:0 auto}
+.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(26,46,110,.08)}
+.card-navy{background:var(--navy);border-radius:16px;padding:18px;margin-bottom:12px}
+.field-label{font-size:11px;color:var(--navy);font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px;display:block;margin-top:12px}
+.field-label:first-child{margin-top:0}
+input[type=text],input[type=tel],input[type=password],select{width:100%;padding:14px 15px;border:1.5px solid rgba(26,46,110,.18);border-radius:12px;font-size:16px;background:#fff;color:#222;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,46,110,.1)}
+textarea{width:100%;padding:12px 14px;border:1.5px solid rgba(26,46,110,.18);border-radius:12px;font-size:15px;background:#fff;color:#222;outline:none;font-family:inherit;resize:vertical;min-height:68px}
+textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,46,110,.1)}
+.btn{display:block;width:100%;padding:15px;border-radius:13px;border:none;cursor:pointer;font-size:16px;font-weight:700;font-family:inherit;transition:transform .1s,opacity .15s;letter-spacing:.3px}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-outline{background:transparent;border:1.5px solid var(--navy);color:var(--navy)}
+.btn-sm{padding:10px 16px;font-size:14px;width:auto;display:inline-block;border-radius:10px}
+.btn-green{background:#2d7d46;color:#fff}
+.btn-red{background:#c0392b;color:#fff}
+.btn-navy{background:var(--navy);color:#fff}
+.opt{display:block;width:100%;padding:15px;border:2px solid rgba(26,46,110,.14);border-radius:13px;cursor:pointer;font-size:15px;color:#222;transition:all .15s;background:#fff;text-align:left;margin-bottom:10px;font-family:inherit;line-height:1.4}
+.opt.selected{border-color:var(--navy);background:var(--navy-light);color:var(--navy);font-weight:700}
+.opt.correct{border-color:#2d7d46;background:#e8f5e9;color:#1a5c2e;font-weight:700}
+.opt.wrong{border-color:#c0392b;background:#fdecea;color:#8b0000}
+.opt.locked{cursor:default;opacity:.65}
+.timer-wrap{position:relative;width:62px;height:62px;flex-shrink:0}
+.timer-wrap svg{transform:rotate(-90deg)}
+.timer-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:21px;font-weight:700}
+.prog{height:6px;background:rgba(26,46,110,.1);border-radius:3px;overflow:hidden;margin-bottom:14px}
+.prog-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .4s}
+.lb-row{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:12px;margin-bottom:7px}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
+.stat-box{background:var(--navy-light);border-radius:12px;padding:13px 7px;text-align:center}
+.stat-val{font-size:26px;font-weight:700}
+.stat-lbl{font-size:10px;color:#666;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+.tabs{display:flex;background:rgba(26,46,110,.07);border-radius:11px;padding:3px;margin-bottom:12px;gap:3px;overflow-x:auto}
+.tab-btn{flex:1;padding:9px 8px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:12px;color:#777;font-family:inherit;white-space:nowrap}
+.tab-btn.active{background:var(--navy);color:#fff;font-weight:700}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px;display:block}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border:1px solid rgba(26,46,110,.12);border-radius:20px;font-size:12px;margin:2px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#2d7d46;flex-shrink:0;animation:pulse 1.3s infinite}
+.img-q{width:100%;max-height:180px;object-fit:contain;border-radius:12px;border:1px solid rgba(26,46,110,.1);background:rgba(26,46,110,.03);margin-bottom:14px}
+.upload-zone{border:2px dashed rgba(26,46,110,.22);border-radius:12px;padding:22px 14px;text-align:center;cursor:pointer;margin-top:6px}
+.err-text{font-size:13px;color:#c0392b;text-align:center;margin-top:8px;padding:10px;background:#fdecea;border-radius:10px}
+.info-box{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:11px 13px}
+.q-item{border:1px solid rgba(26,46,110,.08);border-radius:10px;padding:10px 12px;margin-bottom:5px;display:flex;align-items:flex-start;gap:9px}
+.q-num{width:22px;height:22px;border-radius:50%;background:var(--navy-light);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .25s ease}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:12px}
+.spinner{width:40px;height:40px;border:4px solid rgba(26,46,110,.15);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="root"><div class="loading"><div class="spinner"></div><div style="color:var(--navy);font-size:14px">Loading Quiz...</div></div></div>
+
+<script>
+const firebaseConfig={
+  apiKey:"AIzaSyBnMdMaw6vEN0zkguFA_-kXnhO3eTP4LZA",
+  authDomain:"rotary-quiz-2026.firebaseapp.com",
+  databaseURL:"https://rotary-quiz-2026-default-rtdb.firebaseio.com",
+  projectId:"rotary-quiz-2026",
+  storageBucket:"rotary-quiz-2026.firebasestorage.app",
+  messagingSenderId:"592194340027",
+  appId:"1:592194340027:web:bb2395ef6245be1353559e"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+const ADMIN_PASS="rotary@2024";
+const Q_TIME=5;
+const KEYS={state:"rq_state",questions:"rq_questions",parts:"rq_parts",ans:n=>"rq_ans_"+btoa(unescape(encodeURIComponent(n))).replace(/[=+/]/g,"X")};
+const INIT_STATE={status:"waiting",currentQ:-1,qStartAt:0,total:25};
+
+const BASE_Q=[
+  {q:"What is the full form for EREY?",opts:["Each Rotarian Every Year","Every Rotarian Every Year","Every Rotary Every Year","Each Rotary Each Year"],c:1},
+  {q:"Where was Rotary started?",opts:["Chicago","Washington","California","Texas"],c:0},
+  {q:"How do you donate to TRF?",opts:["Cheque","Online","Club","All"],c:3},
+  {q:"What are the types of membership in Rotary?",opts:["Corporate Membership","Active Membership","Associate Membership","All the Above"],c:3},
+  {q:"Where was the First Rotaract Club established in India?",opts:["Secunderabad","Calcutta","Chennai","Kerala"],c:0},
+  {q:"Which Rotary value is reinforced in the Learning Centre leadership courses?",opts:["Political Leadership","Product Management Leadership","Ethical Leadership and Service Above Self","None Of the above"],c:2},
+  {q:"DLP refers to?",opts:["District Leadership Plan","Development Leadership Program","District Learning Plan","Department Leadership Plan"],c:0},
+  {q:"DRFC stands for?",opts:["District Rotary Fund Committee","District Rotary Foundation Committee","Development Rotary Finance Committee","District Regional Finance Council"],c:1},
+  {q:"RV stands for?",opts:["Rotary Volunteers","Regional Volunteers","Rotary Vision","Rotary Venture"],c:0},
+  {q:"Which is the Official learning platform?",opts:["Rotary Learn","Learning Centre","Learn Rotary","Learn Go"],c:1},
+  {q:"Which language is NOT supported by the Rotary Learning Centre?",opts:["English","Spanish","Mandarin","Hindi"],c:2},
+  {q:"When was the First Interact Club Started?",opts:["1965","1964","1962","1960"],c:2},
+  {q:"How many members formed the first Rotary club?",opts:["7","4","3","8"],c:1},
+  {q:"Who set up the Four Way Test?",opts:["Paul Harris","Sylvester Schiele","Herbert Taylor","Gustavus Loehr"],c:2},
+  {q:"What are the official colours of Rotary?",opts:["Blue, Orange, White","Sky blue, Yellow, Gold","Royal blue, Gold","Dark blue, White, Yellow"],c:2},
+  {q:"Who is the first Rotary President in the world?",opts:["Paul Harris","Sylvester Schiele","Arch Klumph","Churchill"],c:1},
+  {q:"How many words does the Four Way Test have?",opts:["22","23","24","25"],c:2},
+  {q:"How frequently is the Official Directory published?",opts:["Quarterly","Annually","Once in Two Years","Half yearly"],c:1},
+];
+
+async function sGet(key){
+  const snap=await db.ref(key).get();
+  return snap.exists()?snap.val():null;
+}
+async function sSet(key,val){
+  await db.ref(key).set(val);
+}
+
+function maskPhone(p){return p&&p.length>=4?"XXXXXX"+String(p).slice(-4):p||"";}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+let S={
+  view:"home",userName:"",userPhone:"",userClub:"",isAdmin:false,
+  nameIn:"",phoneIn:"",clubIn:"",passIn:"",err:"",
+  qState:INIT_STATE,questions:[],participants:{},
+  myAnswers:{},selected:null,locked:false,timeLeft:Q_TIME,
+  allAnswers:{},adminTab:"qs",
+  newQ:{q:"",opts:["","","",""],c:0,img:null,type:"text"},
+  addErr:"",timerId:null,stateListener:null
+};
+
+function rotaryLogoSVG(){
+  return`<svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" style="height:30px;width:auto">
+    <circle cx="15" cy="15" r="12" fill="none" stroke="#fff" stroke-width="2"/>
+    <circle cx="15" cy="15" r="6" fill="none" stroke="#fff" stroke-width="2"/>
+    <line x1="15" y1="3" x2="15" y2="27" stroke="#fff" stroke-width="1.5"/>
+    <line x1="3" y1="15" x2="27" y2="15" stroke="#fff" stroke-width="1.5"/>
+    <text x="32" y="20" fill="#fff" font-size="14" font-weight="bold" font-family="serif">Rotary</text>
+  </svg>`;
+}
+
+function buildHdr(sub){
+  return`<div class="hdr">
+    <div class="hdr-logos">
+      <div class="club-logo-circle"><svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="22" r="22" fill="#1a2e6e"/><text x="22" y="28" text-anchor="middle" fill="#c9a227" font-size="14" font-weight="bold" font-family="serif">RC</text></svg></div>
+    </div>
+    <div class="hdr-center">
+      <div class="hdr-title">Rotary Quiz 2026</div>
+      <div class="hdr-club">RC Pondicherry Eyes</div>
+      ${sub?`<div class="hdr-sub">${sub}</div>`:""}
+    </div>
+    <div class="rotary-logo-wrap">${rotaryLogoSVG()}</div>
+  </div>`;
+}
+
+function render(){
+  const root=document.getElementById("root");
+  let sub="";
+  if(S.view==="quiz") sub=`Q${S.qState.currentQ+1}/${S.qState.total} · 5s timer`;
+  else if(S.view==="waiting") sub="Waiting for quiz to start...";
+  else if(S.view==="result") sub="Quiz Results";
+  let h=buildHdr(sub);
+  if(S.view==="home") h+=renderHome();
+  else if(S.view==="waiting") h+=renderWaiting();
+  else if(S.view==="quiz") h+=renderQuiz();
+  else if(S.view==="result") h+=renderResult();
+  else if(S.view==="admin") h+=renderAdmin();
+  root.innerHTML=h;
+  attachEvents();
+}
+
+function renderHome(){
+  return`<div class="body fade-in">
+    <div class="card">
+      <span class="sec-lbl">🎯 Quiz Join பண்ணுங்க</span>
+      <label class="field-label">உங்கள் பெயர் (Name)</label>
+      <input type="text" id="iName" placeholder="Full Name" value="${esc(S.nameIn)}" autocomplete="name"/>
+      <label class="field-label">Rotary Club பெயர்</label>
+      <input type="text" id="iClub" placeholder="RC Chennai / RC Mumbai..." value="${esc(S.clubIn)}"/>
+      <label class="field-label">Mobile Number</label>
+      <input type="tel" id="iPhone" placeholder="Mobile number" value="${esc(S.phoneIn)}" inputmode="numeric"/>
+      <div style="margin-top:14px"><button class="btn btn-gold" id="joinBtn">Join Quiz →</button></div>
+      ${S.err?`<div class="err-text">${esc(S.err)}</div>`:""}
+    </div>
+    <div class="card">
+      <span class="sec-lbl" style="color:#999">⚙ Admin Login</span>
+      <label class="field-label">Password</label>
+      <input type="password" id="iPass" placeholder="Admin password" value="${esc(S.passIn)}"/>
+      <div style="margin-top:10px"><button class="btn btn-outline" id="adminBtn">Admin Panel</button></div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:#aaa;padding-bottom:8px">Admin password: rotary@2024</div>
+  </div>`;
+}
+
+function renderWaiting(){
+  const pKeys=Object.keys(S.participants);
+  const clubCount={};
+  Object.values(S.participants).forEach(p=>{const c=p.club||"Other";clubCount[c]=(clubCount[c]||0)+1;});
+  return`<div class="body fade-in">
+    <div class="card-navy">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+        <div class="live-dot"></div>
+        <span style="color:#fff;font-size:14px;font-weight:700">Waiting for Admin to Start...</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:30px;font-weight:700;color:var(--light-gold)">${pKeys.length}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Members Joined</div>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:30px;font-weight:700;color:var(--light-gold)">${Object.keys(clubCount).length}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">Rotary Clubs</div>
+        </div>
+      </div>
+      <div class="info-box">
+        <div style="font-size:11px;color:var(--light-gold);font-weight:700;text-transform:uppercase;letter-spacing:.5px">You joined as</div>
+        <div style="font-size:15px;color:#fff;font-weight:700;margin-top:4px">${esc(S.userName)}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:2px">🏛 ${esc(S.userClub)}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:1px">📱 ${maskPhone(S.userPhone)}</div>
+      </div>
+    </div>
+    <div class="card"><span class="sec-lbl">Members Joined (${pKeys.length})</span>
+      <div style="display:flex;flex-wrap:wrap">${pKeys.map(n=>{const isMe=n===S.userName;return`<span class="pill" style="${isMe?"background:var(--navy-light);border-color:var(--navy);font-weight:700;color:var(--navy)":""}"><span style="width:6px;height:6px;border-radius:50%;background:${isMe?"#2d7d46":"#ccc"};flex-shrink:0"></span>${esc(n)}</span>`;}).join("")}${!pKeys.length?`<span style="font-size:13px;color:#aaa">யாரும் இன்னும் சேரவில்லை</span>`:""}</div>
+    </div>
+  </div>`;
+}
+
+function renderQuiz(){
+  const q=S.questions[S.qState.currentQ];
+  if(!q) return`<div class="body" style="text-align:center;padding:3rem;color:#aaa">Loading question...</div>`;
+  const qn=S.qState.currentQ+1,tot=S.qState.total;
+  const R=27,circ=2*Math.PI*R,dash=circ*(S.timeLeft/Q_TIME);
+  const tc=S.timeLeft<=2?"#c0392b":S.timeLeft<=3?"#d4810a":"var(--navy)";
+  return`<div class="body fade-in">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.5px;text-transform:uppercase">Question ${qn} of ${tot}</div>
+        <div style="font-size:12px;color:#888;margin-top:3px">🏛 ${esc(S.userClub)}</div>
+      </div>
+      <div class="timer-wrap">
+        <svg width="62" height="62" viewBox="0 0 62 62">
+          <circle cx="31" cy="31" r="${R}" fill="none" stroke="rgba(26,46,110,.1)" stroke-width="5"/>
+          <circle id="timerCircle" cx="31" cy="31" r="${R}" fill="none" stroke="${tc}" stroke-width="5" stroke-dasharray="${dash} ${circ}" stroke-linecap="round"/>
+        </svg>
+        <div class="timer-num" id="timerNum" style="color:${tc}">${S.timeLeft}</div>
+      </div>
+    </div>
+    <div class="prog"><div class="prog-fill" id="progFill" style="width:${(qn/tot)*100}%"></div></div>
+    <div class="card" style="padding:16px 15px">
+      ${q.img?`<img src="${q.img}" class="img-q" alt="question"/>`:""}
+      <div style="font-size:16px;font-weight:700;color:var(--navy);line-height:1.55;margin-bottom:16px">${esc(q.q)}</div>
+      ${q.opts.map((o,i)=>{let cls="opt";if(S.locked){if(i===q.c)cls+=" correct";else if(i===S.selected&&S.selected!==q.c)cls+=" wrong";else cls+=" locked";}else if(i===S.selected)cls+=" selected";return`<button class="${cls}" data-opt="${i}"><span style="font-weight:700;font-size:14px;margin-right:8px;color:#999">${["A","B","C","D"][i]}.</span>${esc(o)}</button>`;}).join("")}
+      ${!S.locked?`<button class="btn btn-gold" id="confirmBtn" style="margin-top:6px;${S.selected===null?"opacity:.4;pointer-events:none":""}">✓ Confirm Answer</button>`
+      :`<div style="margin-top:10px;padding:13px 14px;background:${S.selected===q.c?"#e8f5e9":"#fdecea"};border-radius:12px;font-size:14px;color:${S.selected===q.c?"#1a5c2e":"#8b0000"};font-weight:700;line-height:1.4">
+        ${S.selected===q.c?"✓ Correct! Well done.":"✗ Wrong. Correct: "+["A","B","C","D"][q.c]+". "+esc(q.opts[q.c])}
+      </div>`}
+    </div>
+    <div style="text-align:center;font-size:11px;color:#bbb;padding:4px 0">Next question in 5 seconds</div>
+  </div>`;
+}
+
+function getLB(){
+  return Object.entries(S.allAnswers).map(([name,ans])=>{
+    let sc=0,wr=0,sk=0;
+    S.questions.forEach((q,i)=>{const a=ans[i];if(a===undefined||a===null)sk++;else if(Number(a)===q.c)sc++;else wr++;});
+    const p=S.participants[name];
+    return{name,score:sc,wrong:wr,skip:sk,club:p?.club||"",phone:p?.phone||""};
+  }).sort((a,b)=>b.score-a.score||a.wrong-b.wrong);
+}
+
+function renderLBRows(lb,myName){
+  const medals=["🥇","🥈","🥉"];
+  return lb.map((r,i)=>{
+    const isMe=r.name===myName;
+    const bg=i===0?"#fffbe6":i===1?"#f7f7f7":i===2?"#fdf3e7":"#f5f6fa";
+    const bdr=i===0?"rgba(201,162,39,.35)":i===1?"rgba(180,180,180,.35)":i===2?"rgba(180,120,60,.25)":"rgba(26,46,110,.07)";
+    return`<div class="lb-row" style="background:${isMe?"var(--navy-light)":bg};border:1px solid ${isMe?"var(--navy)":bdr}">
+      <div style="font-size:24px;width:30px;text-align:center;flex-shrink:0">${i<3?medals[i]:`<span style="font-size:13px;font-weight:700;color:#999">${i+1}</span>`}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏛 ${esc(r.club||r.name)}</div>
+        <div style="font-size:12px;color:#777;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}${isMe?" 👤":""}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:19px;font-weight:700;color:#1a5c2e">${r.score}<span style="font-size:11px;color:#aaa">/${S.questions.length}</span></div>
+        <div style="font-size:11px;color:#c0392b;margin-top:1px">✗ ${r.wrong}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderResult(){
+  const myA=S.myAnswers,qs=S.questions;
+  let sc=0,wr=0,sk=0;
+  qs.forEach((q,i)=>{const a=myA[i];if(a===undefined||a===null)sk++;else if(Number(a)===q.c)sc++;else wr++;});
+  const lb=getLB(),rank=lb.findIndex(r=>r.name===S.userName)+1;
+  const pct=qs.length?Math.round(sc/qs.length*100):0;
+  return`<div class="body fade-in">
+    <div class="card-navy" style="text-align:center;padding:22px 18px">
+      <div style="font-size:44px">${sc>=20?"🏆":sc>=15?"🥈":sc>=10?"🥉":"📝"}</div>
+      <div style="font-size:19px;font-weight:700;color:#fff;margin:10px 0 4px">🏛 ${esc(S.userClub)}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.65)">${esc(S.userName)} · 📱 ${maskPhone(S.userPhone)}</div>
+      ${rank?`<div style="display:inline-block;background:var(--gold);color:var(--navy);padding:5px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-top:10px">Rank #${rank} of ${lb.length}</div>`:""}
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-val" style="color:#1a5c2e">${sc}</div><div class="stat-lbl">Correct</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:#c0392b">${wr}</div><div class="stat-lbl">Wrong</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--navy)">${pct}%</div><div class="stat-lbl">Score</div></div>
+    </div>
+    <div class="card"><span class="sec-lbl">🏆 Final Leaderboard</span>
+      ${!lb.length?`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:14px">யாரும் answer பண்ணவில்லை</div>`:renderLBRows(lb,S.userName)}
+    </div>
+    <button class="btn btn-outline" id="backHomeBtn" style="margin-bottom:14px">← Home-க்கு திரும்பு</button>
+  </div>`;
+}
+
+function renderAdmin(){
+  const pKeys=Object.keys(S.participants);
+  const lb=getLB();
+  const qs=S.qState;
+  const isRun=qs.status==="running",isWait=qs.status==="waiting",isFin=qs.status==="finished";
+  const cQ=S.questions[qs.currentQ];
+  const tc=S.timeLeft<=2?"#c0392b":S.timeLeft<=3?"#d4810a":"var(--navy)";
+  const R=22,circ=2*Math.PI*R,dash=circ*(S.timeLeft/Q_TIME);
+  const qc=S.questions.length;
+  const nq=S.newQ;
+  let liveHtml="";
+  if(isRun&&cQ){
+    const cnt=[0,0,0,0];
+    Object.values(S.allAnswers).forEach(a=>{const v=a[qs.currentQ];if(v!=null)cnt[Number(v)]++;});
+    const tot=cnt.reduce((a,b)=>a+b,0);
+    liveHtml=`<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;color:#888;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Live (${tot}/${pKeys.length} answered)</div>${cQ.opts.map((o,i)=>{const p=pKeys.length?Math.round(cnt[i]/pKeys.length*100):0;return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:${i===cQ.c?"#1a5c2e":"#666"};font-weight:${i===cQ.c?"700":"400"}"><b>${["A","B","C","D"][i]}.</b> ${esc(o)}${i===cQ.c?" ✓":""}</span><span style="color:#999">${cnt[i]}</span></div><div style="height:7px;background:rgba(26,46,110,.08);border-radius:4px;overflow:hidden"><div style="height:100%;width:${p}%;background:${i===cQ.c?"#2d7d46":"var(--navy)"};border-radius:4px;transition:width .5s"></div></div></div>`;}).join("")}</div>`;
+  }
+  const addForm=qc>=25?`<div style="padding:13px;background:#e8f5e9;border-radius:11px;font-size:14px;color:#1a5c2e;font-weight:700">✓ All 25 questions ready! Start பண்ணலாம்.</div>`:`
+  <div style="background:var(--navy-light);border-radius:12px;padding:14px;margin-top:10px">
+    <div style="font-size:10px;font-weight:700;color:var(--navy);letter-spacing:.7px;text-transform:uppercase;margin-bottom:10px">Add Question (${qc}/25)</div>
+    <label class="field-label" style="margin-top:0">Type</label>
+    <select id="qType"><option value="text" ${nq.type==="text"?"selected":""}>Text Question</option><option value="image" ${nq.type==="image"?"selected":""}>Image / Logo Question</option></select>
+    ${nq.type==="image"?`<label class="field-label">Image</label><div class="upload-zone" id="imgUploadBox">${nq.img?`<img src="${nq.img}" style="max-height:80px;object-fit:contain"/><div style="font-size:12px;color:var(--navy);margin-top:6px">Tap to change</div>`:`<div style="font-size:14px;color:#999">📁 Tap to upload logo or image</div>`}</div><input type="file" id="imgFileIn" accept="image/*" style="display:none"/>`:""}
+    <label class="field-label">Question</label>
+    <textarea id="qText" placeholder="Enter question...">${esc(nq.q)}</textarea>
+    ${[0,1,2,3].map(i=>`<label class="field-label">Option ${["A","B","C","D"][i]}</label><input type="text" class="optIn" data-i="${i}" placeholder="Option ${["A","B","C","D"][i]}" value="${esc(nq.opts[i])}"/>`).join("")}
+    <label class="field-label">Correct Answer</label>
+    <select id="correctSel">${[0,1,2,3].map(i=>`<option value="${i}" ${nq.c===i?"selected":""}>Option ${["A","B","C","D"][i]}${nq.opts[i]?" — "+nq.opts[i].substring(0,20):""}</option>`).join("")}</select>
+    ${S.addErr?`<div class="err-text">${esc(S.addErr)}</div>`:""}
+    <div style="margin-top:12px"><button class="btn btn-sm btn-green" id="addQBtn">+ Add Question</button></div>
+  </div>`;
+
+  return`<div class="body fade-in">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div><div style="font-size:16px;font-weight:700;color:var(--navy)">Admin Panel</div><div style="font-size:12px;color:#999;margin-top:2px">${pKeys.length} members · ${qc}/25 Q</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        ${isWait&&qc>0?`<button class="btn btn-sm btn-green" id="startBtn">▶ Start</button>`:""}
+        ${isRun?`<div class="timer-wrap" style="width:50px;height:50px"><svg width="50" height="50" viewBox="0 0 50 50"><circle cx="25" cy="25" r="${R}" fill="none" stroke="rgba(26,46,110,.1)" stroke-width="4"/><circle cx="25" cy="25" r="${R}" fill="none" stroke="${tc}" stroke-width="4" stroke-dasharray="${dash} ${circ}" stroke-linecap="round"/></svg><div class="timer-num" id="timerNum" style="color:${tc};font-size:17px">${S.timeLeft}</div></div>`:""}
+        <button class="btn btn-sm btn-red" id="resetBtn">↺ Reset</button>
+      </div>
+    </div>
+    ${isWait&&qc<25?`<div style="padding:11px 13px;background:#fff8d0;border-radius:11px;font-size:13px;color:#7a5a00;margin-bottom:12px;border:1px solid rgba(201,162,39,.3)">⚠ ${25-qc} more questions needed</div>`:""}
+    ${isRun&&cQ?`<div class="card" style="padding:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px">Q ${qs.currentQ+1}/${qs.total}</span><span style="font-size:11px;color:#bbb">5s auto</span></div>${cQ.img?`<img src="${cQ.img}" style="max-height:70px;object-fit:contain;margin-bottom:8px;border-radius:8px;display:block"/>`:""}  <div style="font-size:14px;font-weight:700;color:var(--navy);line-height:1.4">${esc(cQ.q)}</div>${liveHtml}</div>`:""}
+    <div class="tabs">
+      <button class="tab-btn ${S.adminTab==="qs"?"active":""}" data-tab="qs">Questions ${qc}/25</button>
+      <button class="tab-btn ${S.adminTab==="members"?"active":""}" data-tab="members">Members(${pKeys.length})</button>
+      <button class="tab-btn ${S.adminTab==="lb"?"active":""}" data-tab="lb">Leaderboard</button>
+      ${isFin||isRun?`<button class="tab-btn ${S.adminTab==="detail"?"active":""}" data-tab="detail">Details</button>`:""}
+    </div>
+    ${S.adminTab==="qs"?`<div class="card"><div style="max-height:260px;overflow-y:auto;margin-bottom:10px">${S.questions.map((q,i)=>`<div class="q-item"><div class="q-num">${i+1}</div><div style="flex:1;min-width:0"><div style="font-size:12px;color:#222;line-height:1.4;word-break:break-word">${q.img?`<span style="font-size:9px;padding:1px 5px;background:var(--navy-light);color:var(--navy);border-radius:6px;margin-right:3px">IMG</span>`:""}${esc(q.q.substring(0,55))}${q.q.length>55?"...":""}</div><div style="font-size:11px;color:#2d7d46;margin-top:2px">✓ ${["A","B","C","D"][q.c]}. ${esc(q.opts[q.c]?.substring(0,25))}</div></div>${i>=18?`<button class="btn btn-sm btn-red" style="padding:5px 8px;font-size:11px;flex-shrink:0" data-del="${i}">✕</button>`:""}</div>`).join("")}</div>${addForm}</div>`:""}
+    ${S.adminTab==="members"?`<div class="card">${pKeys.map(n=>{const p=S.participants[n];return`<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid rgba(26,46,110,.07);border-radius:10px;margin-bottom:6px"><div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${String(n).charAt(0).toUpperCase()}</div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(n)}</div><div style="font-size:12px;color:#666;margin-top:2px">🏛 ${esc(p?.club||"")} · 📱 ${maskPhone(p?.phone||"")}</div></div><div style="width:9px;height:9px;border-radius:50%;background:${S.allAnswers[n]&&Object.keys(S.allAnswers[n]).length?"#2d7d46":"#ddd"};flex-shrink:0"></div></div>`;}).join("")}${!pKeys.length?`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:14px">யாரும் சேரவில்லை</div>`:""}</div>`:""}
+    ${S.adminTab==="lb"?`<div class="card"><span class="sec-lbl">🏆 Leaderboard — By Rotary Club</span>${!lb.length?`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:14px">Quiz நடக்கும் போது result வரும்</div>`:renderLBRows(lb,"")}</div>`:""}
+    ${S.adminTab==="detail"?`<div class="card" style="overflow-x:auto"><span class="sec-lbl">All Members</span><table style="width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed"><thead><tr style="border-bottom:2px solid rgba(26,46,110,.1)"><th style="text-align:left;padding:7px 5px;color:#999;font-weight:700;width:80px">Name</th><th style="text-align:left;padding:7px 4px;color:#999;font-weight:700">Rotary Club</th><th style="padding:6px;color:#999;font-weight:700;width:38px">✓</th><th style="padding:6px;color:#999;font-weight:700;width:38px">✗</th><th style="padding:6px;color:#999;font-weight:700;width:35px">-</th></tr></thead><tbody>${lb.map(r=>`<tr style="border-bottom:1px solid rgba(26,46,110,.05)"><td style="padding:9px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--navy);font-size:11px">${esc(r.name)}</td><td style="padding:9px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#666;font-size:11px">${esc(r.club)}</td><td style="padding:9px;text-align:center;color:#1a5c2e;font-weight:700">${r.score}</td><td style="padding:9px;text-align:center;color:#c0392b">${r.wrong}</td><td style="padding:9px;text-align:center;color:#d4810a">${r.skip}</td></tr>`).join("")}</tbody></table></div>`:""}
+  </div>`;
+}
+
+function startTimer(){
+  if(S.timerId) clearInterval(S.timerId);
+  S.timerId=setInterval(()=>{
+    if(S.qState.status!=="running") return;
+    const left=Math.max(0,Q_TIME-(Date.now()-S.qState.qStartAt)/1000);
+    S.timeLeft=Math.ceil(left);
+    if(left<=0&&!S.locked&&!S.isAdmin) submitAns(S.selected);
+    const tn=document.getElementById("timerNum");
+    if(tn) tn.textContent=S.timeLeft;
+    const circle=document.getElementById("timerCircle");
+    if(circle){
+      const R=27,circ=2*Math.PI*R,dash=circ*(S.timeLeft/Q_TIME);
+      const tc=S.timeLeft<=2?"#c0392b":S.timeLeft<=3?"#d4810a":"var(--navy)";
+      circle.setAttribute("stroke-dasharray",`${dash} ${circ}`);
+      circle.setAttribute("stroke",tc);
+      if(tn) tn.style.color=tc;
+    }
+  },100);
+}
+
+let advId=null;
+function startAdvancer(){
+  if(advId) clearInterval(advId);
+  advId=setInterval(async()=>{
+    if(!S.isAdmin||S.qState.status!=="running") return;
+    const state=await sGet(KEYS.state);
+    if(!state||state.status!=="running") return;
+    if((Date.now()-state.qStartAt)/1000>=Q_TIME+0.8){
+      const next=state.currentQ+1;
+      if(next>=state.total) await sSet(KEYS.state,{...state,status:"finished"});
+      else await sSet(KEYS.state,{...state,currentQ:next,qStartAt:Date.now()});
+    }
+  },400);
+}
+
+function listenState(){
+  if(S.stateListener) db.ref(KEYS.state).off("value",S.stateListener);
+  S.stateListener=db.ref(KEYS.state).on("value",async snap=>{
+    const state=snap.val();
+    if(!state) return;
+    const prev=S.qState.currentQ;
+    if(state.currentQ!==prev){S.selected=null;S.locked=false;}
+    S.qState=state;
+    const qs=await sGet(KEYS.questions);
+    if(qs) S.questions=Array.isArray(qs)?qs:Object.values(qs);
+    const pts=await sGet(KEYS.parts);
+    if(pts) S.participants=pts;
+    if(S.isAdmin){
+      const names=Object.keys(S.participants||{});
+      for(const n of names){const a=await sGet(KEYS.ans(n));if(a) S.allAnswers[n]=a;}
+    } else {
+      const myA=await sGet(KEYS.ans(S.userName));
+      if(myA) S.myAnswers=myA;
+    }
+    updateView();
+  });
+  db.ref(KEYS.parts).on("value",snap=>{if(snap.val()) S.participants=snap.val();});
+}
+
+function updateView(){
+  if(S.view==="home") return;
+  const st=S.qState.status;
+  if(S.isAdmin){if(S.view!=="admin") S.view="admin";}
+  else{
+    if(st==="waiting"&&S.view!=="waiting") S.view="waiting";
+    else if(st==="running"&&S.view!=="quiz"){S.view="quiz";S.selected=null;S.locked=false;}
+    else if(st==="finished"&&S.view!=="result") S.view="result";
+  }
+  render();
+}
+
+async function submitAns(opt){
+  if(S.locked||!S.userName) return;
+  S.locked=true;S.selected=opt;
+  const upd={...S.myAnswers,[S.qState.currentQ]:opt};
+  S.myAnswers=upd;
+  await sSet(KEYS.ans(S.userName),upd);
+  render();
+}
+
+function attachEvents(){
+  const g=id=>document.getElementById(id);
+  const iN=g("iName");if(iN) iN.oninput=e=>S.nameIn=e.target.value;
+  const iC=g("iClub");if(iC) iC.oninput=e=>S.clubIn=e.target.value;
+  const iP=g("iPhone");if(iP) iP.oninput=e=>S.phoneIn=e.target.value;
+  const iPa=g("iPass");if(iPa) iPa.oninput=e=>S.passIn=e.target.value;
+
+  const jb=g("joinBtn");
+  if(jb) jb.onclick=async()=>{
+    const n=S.nameIn.trim(),c=S.clubIn.trim(),p=S.phoneIn.trim();
+    if(!n){S.err="பெயர் enter பண்ணுங்க!";render();return;}
+    if(!c){S.err="Rotary Club பெயர் enter பண்ணுங்க!";render();return;}
+    if(!p){S.err="Mobile number enter பண்ணுங்க!";render();return;}
+    S.err="";S.userName=n;S.userClub=c;S.userPhone=p;
+    const pts=(await sGet(KEYS.parts))||{};
+    pts[n]={joinedAt:Date.now(),club:c,phone:p};
+    await sSet(KEYS.parts,pts);
+    S.participants=pts;S.view="waiting";
+    listenState();startTimer();render();
+  };
+
+  const ab=g("adminBtn");
+  if(ab) ab.onclick=async()=>{
+    if(S.passIn!==ADMIN_PASS){S.err="Wrong password!";render();return;}
+    S.err="";S.isAdmin=true;S.view="admin";S.adminTab="qs";
+    const state=await sGet(KEYS.state);if(!state) await sSet(KEYS.state,INIT_STATE);
+    const qs=await sGet(KEYS.questions);
+    if(!qs){await sSet(KEYS.questions,BASE_Q);S.questions=BASE_Q;}
+    else S.questions=Array.isArray(qs)?qs:Object.values(qs);
+    const pts=await sGet(KEYS.parts);if(pts) S.participants=pts;
+    listenState();startTimer();startAdvancer();render();
+  };
+
+  const sb=g("startBtn");
+  if(sb) sb.onclick=async()=>{
+    await sSet(KEYS.state,{status:"running",currentQ:0,qStartAt:Date.now(),total:S.questions.length});
+    render();
+  };
+
+  const rb=g("resetBtn");
+  if(rb) rb.onclick=async()=>{
+    if(!confirm("Reset பண்ணணுமா? எல்லா data delete ஆகும்.")) return;
+    await sSet(KEYS.state,INIT_STATE);
+    await sSet(KEYS.parts,{});
+    S.myAnswers={};S.allAnswers={};S.participants={};S.qState=INIT_STATE;render();
+  };
+
+  const cb=g("confirmBtn");if(cb) cb.onclick=()=>{if(S.selected!==null&&!S.locked) submitAns(S.selected);};
+  const bb=g("backHomeBtn");if(bb) bb.onclick=()=>{S.view="home";S.userName="";S.userClub="";S.userPhone="";S.myAnswers={};S.selected=null;S.locked=false;if(S.stateListener){db.ref(KEYS.state).off("value",S.stateListener);S.stateListener=null;}render();};
+
+  document.querySelectorAll(".opt").forEach(o=>{o.onclick=()=>{if(!S.locked){S.selected=parseInt(o.dataset.opt);render();}};});
+  document.querySelectorAll(".tab-btn").forEach(t=>{t.onclick=()=>{S.adminTab=t.dataset.tab;render();};});
+
+  const qt=g("qType");if(qt) qt.onchange=e=>{S.newQ.type=e.target.value;if(e.target.value==="text") S.newQ.img=null;render();};
+  const qTxt=g("qText");if(qTxt) qTxt.oninput=e=>S.newQ.q=e.target.value;
+  document.querySelectorAll(".optIn").forEach(inp=>{inp.oninput=e=>{S.newQ.opts[parseInt(inp.dataset.i)]=e.target.value;};});
+  const cs=g("correctSel");if(cs) cs.onchange=e=>S.newQ.c=parseInt(e.target.value);
+
+  const imgBox=g("imgUploadBox"),imgIn=g("imgFileIn");
+  if(imgBox&&imgIn){imgBox.onclick=()=>imgIn.click();imgIn.onchange=e=>{const f=e.target.files[0];if(!f) return;const rd=new FileReader();rd.onload=ev=>{S.newQ.img=ev.target.result;render();};rd.readAsDataURL(f);};}
+
+  const aqb=g("addQBtn");
+  if(aqb) aqb.onclick=async()=>{
+    const nq=S.newQ;
+    if(!nq.q.trim()){S.addErr="Question enter பண்ணுங்க!";render();return;}
+    if(nq.opts.some(o=>!o.trim())){S.addErr="எல்லா options fill பண்ணுங்க!";render();return;}
+    if(nq.type==="image"&&!nq.img){S.addErr="Image upload பண்ணுங்க!";render();return;}
+    if(S.questions.length>=25){S.addErr="Already 25 questions!";render();return;}
+    const upd=[...S.questions,{q:nq.q.trim(),opts:nq.opts.map(o=>o.trim()),c:nq.c,img:nq.img||null}];
+    await sSet(KEYS.questions,upd);S.questions=upd;
+    S.newQ={q:"",opts:["","","",""],c:0,img:null,type:"text"};S.addErr="";render();
+  };
+
+  document.querySelectorAll("[data-del]").forEach(btn=>{btn.onclick=async()=>{const i=parseInt(btn.dataset.del);if(i<18) return;const upd=S.questions.filter((_,j)=>j!==i);await sSet(KEYS.questions,upd);S.questions=upd;render();};});
+}
+
+render();
+</script>
+</body>
+</html>
