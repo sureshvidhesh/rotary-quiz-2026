@@ -292,21 +292,36 @@ function renderResult(){
   qs.forEach((q,i)=>{const a=myA[i];if(a===undefined||a===null)sk++;else if(Number(a)===q.c)sc++;else wr++;});
   const lb=getLB(),rank=lb.findIndex(r=>r.name===S.userName)+1;
   const pct=qs.length?Math.round(sc/qs.length*100):0;
-  const top5=lb.slice(0,5);
-  const medals=["🥇","🥈","🥉","4️⃣","5️⃣"];
+  const top5=lb.slice(0,3);
+  const medals=["🥇","🥈","🥉"];
   const top5html=top5.length?top5.map((r,i)=>{
     const isMe=r.name===S.userName;
     const rowBg=i===0?"linear-gradient(135deg,#ffd700,#ffec6e)":i===1?"linear-gradient(135deg,#e8e8e8,#f5f5f5)":i===2?"linear-gradient(135deg,#cd7f32,#e8a96a)":"#f5f6fa";
     const textC=i<3?"#1a2e6e":"#333";
-    return`<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;margin-bottom:8px;background:${rowBg};border:${isMe?"2.5px solid var(--navy)":"2px solid rgba(26,46,110,.08)"}">
-      <div style="font-size:26px;width:32px;text-align:center;flex-shrink:0">${medals[i]}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:15px;font-weight:700;color:${textC};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏛 ${esc(r.club||r.name)}</div>
-        <div style="font-size:12px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}${isMe?" 👤":""}</div>
+    return`<div style="border-radius:16px;margin-bottom:12px;background:${rowBg};border:${isMe?"2.5px solid var(--navy)":"2px solid rgba(26,46,110,.1)"}overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px 8px">
+        <div style="font-size:32px;flex-shrink:0">${medals[i]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px">Rank ${i+1}</div>
+          <div style="font-size:17px;font-weight:700;color:${textC};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${esc(r.name)}${isMe?" 👤":""}</div>
+          <div style="font-size:13px;color:#555;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏛 ${esc(r.club||"")}</div>
+        </div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:22px;font-weight:700;color:#1a5c2e">${r.score}<span style="font-size:12px;color:#aaa">/${qs.length}</span></div>
-        <div style="font-size:11px;color:#c0392b">✗ ${r.wrong}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 12px;border-top:1px solid rgba(26,46,110,.1)">
+        <div style="display:flex;gap:16px">
+          <div style="text-align:center">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px">Score</div>
+            <div style="font-size:20px;font-weight:700;color:#1a5c2e">${r.score}<span style="font-size:12px;color:#aaa">/${qs.length}</span></div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px">Wrong</div>
+            <div style="font-size:20px;font-weight:700;color:#c0392b">${r.wrong}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px">Percent</div>
+            <div style="font-size:20px;font-weight:700;color:var(--navy)">${qs.length?Math.round(r.score/qs.length*100):0}%</div>
+          </div>
+        </div>
       </div>
     </div>`;
   }).join(""):`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:14px">No results yet</div>`;
@@ -324,12 +339,11 @@ function renderResult(){
     </div>
     <div class="card" style="padding:16px">
       <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:22px;font-weight:700;color:var(--navy)">🏆 Top 5 Winners</div>
+        <div style="font-size:22px;font-weight:700;color:var(--navy)">🏆 Top 3 Winners</div>
         <div style="font-size:12px;color:#888;margin-top:3px">Rotary Foundation Online Quiz 2026</div>
       </div>
       <div style="height:2px;background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy));border-radius:2px;margin-bottom:14px"></div>
       ${top5html}
-      ${lb.length>5?`<div style="text-align:center;margin-top:10px;font-size:12px;color:#aaa">+ ${lb.length-5} more participants</div>`:""}
     </div>
     <button class="btn btn-outline" id="backHomeBtn" style="margin-bottom:14px">← Home-க்கு திரும்பு</button>
   </div>`;
